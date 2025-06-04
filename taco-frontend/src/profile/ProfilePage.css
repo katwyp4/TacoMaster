@@ -1,0 +1,53 @@
+body {
+    background-color: #121212; /* pełne ciemne tło */
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 100px auto 40px;
+    padding: 30px;
+    background-color: #1e1e1e; /* ciemne tło kontenera */
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    color: #f1f1f1;
+}
+
+.profile-container h2,
+.profile-container h3 {
+    color: #fff;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 5px;
+}
+
+.user-info p {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+    color: #ccc;
+}
+
+.orders-section {
+    margin-top: 2rem;
+}
+
+.order-card {
+    background-color: #292929;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 5px solid #1976d2;
+    border-radius: 8px;
+    color: #ddd;
+    transition: background-color 0.3s;
+}
+
+.order-card:hover {
+    background-color: #333;
+}
+
+ul {
+    padding: 0;
+    list-style: none;
+}

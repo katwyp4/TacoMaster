@@ -1,0 +1,32 @@
+
+.taco-builder {
+    background-color: #1e1e1e;
+    color: #fff;
+    margin: 6rem auto 2rem;
+    padding: 2.5rem;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    text-align: left;
+}
+
+.step-title {
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.builder-footer {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+
