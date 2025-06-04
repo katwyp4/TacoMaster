@@ -3,44 +3,12 @@ import './TacoBuilder.css';
 import { Button, Checkbox, FormControlLabel, Typography, Box } from '@mui/material';
 import { useCart } from '../context/CartContext';
 
-
-
-const steps = [
-    {
-        label: 'Wybierz tortillę',
-        options: [
-            { name: 'Pszenna', price: 2 },
-            { name: 'Kukurydziana', price: 2.5 },
-        ],
-    },
-    {
-        label: 'Wybierz mięso',
-        options: [
-            { name: 'Wołowina', price: 6 },
-            { name: 'Kurczak', price: 5 },
-            { name: 'Tofu', price: 4 },
-        ],
-    },
-    {
-        label: 'Wybierz dodatki',
-        options: [
-            { name: 'Sałata', price: 1 },
-            { name: 'Pomidory', price: 1 },
-            { name: 'Ser', price: 1.5 },
-            { name: 'Czerwona cebula', price: 1 },
-        ],
-    },
-    {
-        label: 'Wybierz sosy',
-        options: [
-            { name: 'Sos łagodny', price: 1 },
-            { name: 'Sos ostry', price: 1 },
-            { name: 'Guacamole', price: 2 },
-        ],
-    },
-];
+import { useEffect } from 'react';
+import axios from 'axios';
 
 const TacoBuilder = () => {
+
+    const [ingredients, setIngredients] = useState([]);
     const [step, setStep] = useState(0);
     const [selected, setSelected] = useState({});
     const [total, setTotal] = useState(0);
@@ -53,9 +21,46 @@ const TacoBuilder = () => {
         setTotal(total + (isSelected ? -option.price : option.price));
     };
 
+    const categorized = {TORTILLA: [], MIESO: [], DODATEK: [], SOS: [] };
+
+    ingredients.forEach(item => {
+    categorized[item.category]?.push(item);
+    });
+
+
+    const steps = [
+    { label: 'Wybierz tortillę', options: categorized.TORTILLA || [] },
+    { label: 'Wybierz mięso', options: categorized.MIESO || [] },
+    { label: 'Wybierz dodatki', options: categorized.DODATEK || [] },
+    { label: 'Wybierz sosy', options: categorized.SOS || [] }
+    ];
+
+    const tortilla = Object.entries(selected)
+    .filter(([k, v]) => v && k.startsWith('0-'))
+    .map(([k]) => k.split('-')[1])[0] || '';
+
+    const meat = Object.entries(selected)
+    .filter(([k, v]) => v && k.startsWith('1-'))
+    .map(([k]) => k.split('-')[1])[0] || '';
+
+    const addons = Object.entries(selected)
+    .filter(([k, v]) => v && k.startsWith('2-'))
+    .map(([k]) => k.split('-')[1]);
+
+    const sauces = Object.entries(selected)
+    .filter(([k, v]) => v && k.startsWith('3-'))
+    .map(([k]) => k.split('-')[1]);
+
+
     const canProceed = steps[step].options.some(option =>
         selected[`${step}-${option.name}`]
     );
+
+    useEffect(() => {
+  axios.get('http://localhost:8080/api/ingredients')
+    .then(res => setIngredients(res.data))
+    .catch(err => console.error(err));
+}, []);
 
     return (
         <Box className="taco-builder">
@@ -66,7 +71,7 @@ const TacoBuilder = () => {
             <Typography variant="h5" className="step-title">{steps[step].label}</Typography>
 
             <div className="options-list">
-                {steps[step].options.map(option => (
+                {steps[step] &&steps[step].options.map(option => (
                     <FormControlLabel
                         key={option.name}
                         control={
@@ -87,7 +92,6 @@ const TacoBuilder = () => {
                 <Typography variant="h6">Cena: {total.toFixed(2)} zł</Typography>
 
                 <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                    {/* Wstecz */}
                     {step > 0 && (
                         <Button
                             variant="outlined"
@@ -106,8 +110,6 @@ const TacoBuilder = () => {
                         </Button>
 
                     )}
-
-                    {/* Dalej lub Dodaj do koszyka */}
                     {step < steps.length - 1 ? (
                         <Button
                             variant="contained"
@@ -134,13 +136,19 @@ const TacoBuilder = () => {
                                     .map(([k]) => k.split('-')[1]);
 
                                 const taco = {
-                                    ingredients: selectedOptions,
+                                    tortilla,
+                                    meat,
+                                    addons,
+                                    sauces,
                                     price: total,
-                                };
+                                    };
+                                addToCart(taco);
+                                setSelected({});
+                                setStep(0);
+                                setTotal(0);
 
-                                // użyj kontekstu do dodania
                                 alert("Dodano do koszyka! 🍽");
-                                // addToCart(taco); <- wstaw jak masz kontekst
+                               
                             }}
                         >
                             Dodaj do koszyka

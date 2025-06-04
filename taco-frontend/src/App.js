@@ -13,6 +13,7 @@ import CartPage from './cart/CartPage';
 
 function App() {
   return (
+    <CartProvider>
       <Router>
         <CssBaseline />
         <Navbar />
@@ -27,6 +28,7 @@ function App() {
           </Routes>
         </div>
       </Router>
+      </CartProvider>
   );
 }
 
