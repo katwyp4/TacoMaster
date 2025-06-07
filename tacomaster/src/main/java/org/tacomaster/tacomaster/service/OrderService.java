@@ -24,6 +24,10 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    public List<Order> getAllByUserEmail(String email) {
+        return orderRepository.findByUserEmail(email);
+    }
+
 
     public List<Order> getAll() {
         return orderRepository.findAll();

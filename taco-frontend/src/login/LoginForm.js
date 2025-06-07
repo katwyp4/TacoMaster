@@ -12,19 +12,19 @@ const LoginForm = () => {
   const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async e => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('http://localhost:8080/api/users/login', formData, {
-        withCredentials: true
-      });
+  e.preventDefault();
+  try {
+    const response = await axios.post('http://localhost:8080/api/users/login', formData, {
+      withCredentials: true
+    });
 
-      { withCredentials: true }
-      localStorage.setItem('user', JSON.stringify(response.data));
-      navigate('/');
-    } catch (err) {
-      alert('Błąd logowania');
-    }
-  };
+    localStorage.setItem('user', JSON.stringify(response.data));
+    navigate('/');
+  } catch (err) {
+    alert('Błąd logowania');
+  }
+};
+
 
 
   return (

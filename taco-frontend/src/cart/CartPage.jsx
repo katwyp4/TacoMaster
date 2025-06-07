@@ -20,24 +20,33 @@ const CartPage = () => {
     0
   );
 
+  const user = JSON.parse(localStorage.getItem('user'));
+if (!user) {
+   alert('Musisz być zalogowany, aby złożyć zamówienie!');
+   return;
+}
+
   const handleOrder = async () => {
     try {
      const order = {
-    items: cartItems.map(item => ({
-        tortilla: item.tortilla,
-        meat: item.meat,
-        addons: item.addons,
-        sauces: item.sauces,
-        quantity: item.quantity,
-        price: item.price,
-    })),
-    totalPrice,
-    paymentMethod: 'GOTÓWKA',
-    pickupLocation: 'TacoMaster, ul. Przykładowa 123',
-    userEmail: JSON.parse(localStorage.getItem('user'))?.email || 'anonim',
-    };
+  items: cartItems.map(item => ({
+      tortilla: item.tortilla,
+      meat: item.meat,
+      addons: item.addons,
+      sauces: item.sauces,
+      quantity: item.quantity,
+      price: item.price,
+  })),
+  totalPrice,
+  paymentMethod: 'GOTÓWKA',
+  pickupLocation: 'TacoMaster, ul. Przykładowa 123',
+  userEmail: user.email,
 
-      await axios.post('http://localhost:8080/api/orders', order);
+};
+
+    await axios.post('http://localhost:8080/api/orders', order, {
+      withCredentials: true,
+    });
 
       alert('Zamówienie złożone!');
       clearCart();

@@ -1,164 +1,224 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TacoBuilder.css';
-import { Button, Checkbox, FormControlLabel, Typography, Box } from '@mui/material';
+import { Button, Checkbox, FormControlLabel, Typography, Box, Radio } from '@mui/material';
 import { useCart } from '../context/CartContext';
-
-import { useEffect } from 'react';
 import axios from 'axios';
 
 const TacoBuilder = () => {
+  const [ingredients, setIngredients] = useState([]);
+  const [step, setStep] = useState(0);
 
-    const [ingredients, setIngredients] = useState([]);
-    const [step, setStep] = useState(0);
-    const [selected, setSelected] = useState({});
-    const [total, setTotal] = useState(0);
-    const { addToCart } = useCart();
-    const toggleOption = (option) => {
-        const key = `${step}-${option.name}`;
-        const isSelected = selected[key];
-        const newSelected = { ...selected, [key]: !isSelected };
-        setSelected(newSelected);
-        setTotal(total + (isSelected ? -option.price : option.price));
-    };
+  // Wybrane składniki
+  const [selectedTortilla, setSelectedTortilla] = useState('');
+  const [selectedMeat, setSelectedMeat] = useState('');
+  const [selectedAddons, setSelectedAddons] = useState([]);
+  const [selectedSauces, setSelectedSauces] = useState([]);
+  const [total, setTotal] = useState(0);
 
-    const categorized = {TORTILLA: [], MIESO: [], DODATEK: [], SOS: [] };
+  const { addToCart } = useCart();
 
-    ingredients.forEach(item => {
+  // Pobierz składniki z backendu
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/ingredients')
+      .then(res => setIngredients(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+  // Kategoryzacja składników
+  const categorized = { TORTILLA: [], MIESO: [], DODATEK: [], SOS: [] };
+  ingredients.forEach(item => {
     categorized[item.category]?.push(item);
+  });
+
+  // Przelicz cenę ZAWSZE gdy zmienisz wybór
+  useEffect(() => {
+    let sum = 0;
+    if (selectedTortilla) {
+      const tortilla = ingredients.find(i => i.category === 'TORTILLA' && i.name === selectedTortilla);
+      sum += tortilla ? tortilla.price : 0;
+    }
+    if (selectedMeat) {
+      const meat = ingredients.find(i => i.category === 'MIESO' && i.name === selectedMeat);
+      sum += meat ? meat.price : 0;
+    }
+    selectedAddons.forEach(name => {
+      const addon = ingredients.find(i => i.category === 'DODATEK' && i.name === name);
+      sum += addon ? addon.price : 0;
     });
+    selectedSauces.forEach(name => {
+      const sauce = ingredients.find(i => i.category === 'SOS' && i.name === name);
+      sum += sauce ? sauce.price : 0;
+    });
+    setTotal(sum);
+  }, [selectedTortilla, selectedMeat, selectedAddons, selectedSauces, ingredients]);
 
-
-    const steps = [
+  const steps = [
     { label: 'Wybierz tortillę', options: categorized.TORTILLA || [] },
     { label: 'Wybierz mięso', options: categorized.MIESO || [] },
     { label: 'Wybierz dodatki', options: categorized.DODATEK || [] },
     { label: 'Wybierz sosy', options: categorized.SOS || [] }
-    ];
+  ];
 
-    const tortilla = Object.entries(selected)
-    .filter(([k, v]) => v && k.startsWith('0-'))
-    .map(([k]) => k.split('-')[1])[0] || '';
+  const canProceed =
+    (step === 0 && !!selectedTortilla) ||
+    (step === 1 && !!selectedMeat) ||
+    (step > 1 && steps[step].options.length > 0);
 
-    const meat = Object.entries(selected)
-    .filter(([k, v]) => v && k.startsWith('1-'))
-    .map(([k]) => k.split('-')[1])[0] || '';
-
-    const addons = Object.entries(selected)
-    .filter(([k, v]) => v && k.startsWith('2-'))
-    .map(([k]) => k.split('-')[1]);
-
-    const sauces = Object.entries(selected)
-    .filter(([k, v]) => v && k.startsWith('3-'))
-    .map(([k]) => k.split('-')[1]);
-
-
-    const canProceed = steps[step].options.some(option =>
-        selected[`${step}-${option.name}`]
+  const handleAddonChange = (name) => {
+    setSelectedAddons(prev =>
+      prev.includes(name) ? prev.filter(a => a !== name) : [...prev, name]
     );
+  };
+  const handleSauceChange = (name) => {
+    setSelectedSauces(prev =>
+      prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
+    );
+  };
 
-    useEffect(() => {
-  axios.get('http://localhost:8080/api/ingredients')
-    .then(res => setIngredients(res.data))
-    .catch(err => console.error(err));
-}, []);
+  return (
+    <Box className="taco-builder">
+      <Typography variant="h4" align="center" sx={{ mb: 4 }}>
+        Stwórz swoje taco 🌮
+      </Typography>
 
-    return (
-        <Box className="taco-builder">
-            <Typography variant="h4" align="center" sx={{ mb: 4 }}>
-                Stwórz swoje taco 🌮
-            </Typography>
+      <Typography variant="h5" className="step-title">{steps[step].label}</Typography>
+      <div className="options-list">
+        {steps[step] && steps[step].options.map(option => {
+          if (step === 0) {
+            return (
+              <FormControlLabel
+                key={option.name}
+                control={
+                  <Radio
+                    checked={selectedTortilla === option.name}
+                    onChange={() => setSelectedTortilla(option.name)}
+                    sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }}
+                  />
+                }
+                label={`${option.name} (+${option.price} zł)`}
+                sx={{ color: '#fff' }}
+              />
+            );
+          }
+          if (step === 1) {
+            return (
+              <FormControlLabel
+                key={option.name}
+                control={
+                  <Radio
+                    checked={selectedMeat === option.name}
+                    onChange={() => setSelectedMeat(option.name)}
+                    sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }}
+                  />
+                }
+                label={`${option.name} (+${option.price} zł)`}
+                sx={{ color: '#fff' }}
+              />
+            );
+          }
+          if (step === 2) {
+            return (
+              <FormControlLabel
+                key={option.name}
+                control={
+                  <Checkbox
+                    checked={selectedAddons.includes(option.name)}
+                    onChange={() => handleAddonChange(option.name)}
+                    sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }}
+                  />
+                }
+                label={`${option.name} (+${option.price} zł)`}
+                sx={{ color: '#fff' }}
+              />
+            );
+          }
+          if (step === 3) {
+            return (
+              <FormControlLabel
+                key={option.name}
+                control={
+                  <Checkbox
+                    checked={selectedSauces.includes(option.name)}
+                    onChange={() => handleSauceChange(option.name)}
+                    sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }}
+                  />
+                }
+                label={`${option.name} (+${option.price} zł)`}
+                sx={{ color: '#fff' }}
+              />
+            );
+          }
+          return null;
+        })}
+      </div>
 
-            <Typography variant="h5" className="step-title">{steps[step].label}</Typography>
+      <div className="builder-footer">
+        <Typography variant="h6">Cena: {total.toFixed(2)} zł</Typography>
 
-            <div className="options-list">
-                {steps[step] &&steps[step].options.map(option => (
-                    <FormControlLabel
-                        key={option.name}
-                        control={
-                            <Checkbox
-                                checked={!!selected[`${step}-${option.name}`]}
-                                onChange={() => toggleOption(option)}
-                                sx={{ color: 'white', '&.Mui-checked': { color: 'white' } }}
-                            />
+        <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+          {step > 0 && (
+            <Button
+              variant="outlined"
+              onClick={() => setStep(step - 1)}
+              sx={{
+                backgroundColor: '#fff',
+                color: '#000',
+                borderColor: '#fff',
+                '&:hover': {
+                  backgroundColor: '#e0e0e0',
+                  borderColor: '#fff',
+                },
+              }}
+            >
+              Wstecz
+            </Button>
+          )}
+          {step < steps.length - 1 ? (
+            <Button
+              variant="contained"
+              onClick={() => setStep(step + 1)}
+              disabled={!canProceed}
+              sx={{
+                backgroundColor: '#fff',
+                color: '#000',
+                '&:hover': {
+                  backgroundColor: '#e0e0e0',
+                },
+              }}
+            >
+              Dalej
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="success"
+              disabled={!selectedTortilla || !selectedMeat}
+              onClick={() => {
+                const taco = {
+                  tortilla: selectedTortilla,
+                  meat: selectedMeat,
+                  addons: selectedAddons,
+                  sauces: selectedSauces,
+                  price: total,
+                };
+                addToCart(taco);
+                setSelectedTortilla('');
+                setSelectedMeat('');
+                setSelectedAddons([]);
+                setSelectedSauces([]);
+                setTotal(0);
+                setStep(0);
 
-                        }
-                        label={`${option.name} (+${option.price} zł)`}
-                        sx={{ color: '#fff' }}
-                    />
-                ))}
-            </div>
-
-            <div className="builder-footer">
-                <Typography variant="h6">Cena: {total.toFixed(2)} zł</Typography>
-
-                <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                    {step > 0 && (
-                        <Button
-                            variant="outlined"
-                            onClick={() => setStep(step - 1)}
-                            sx={{
-                                backgroundColor: '#fff',
-                                color: '#000',
-                                borderColor: '#fff',
-                                '&:hover': {
-                                    backgroundColor: '#e0e0e0',
-                                    borderColor: '#fff',
-                                },
-                            }}
-                        >
-                            Wstecz
-                        </Button>
-
-                    )}
-                    {step < steps.length - 1 ? (
-                        <Button
-                            variant="contained"
-                            onClick={() => setStep(step + 1)}
-                            disabled={!canProceed}
-                            sx={{
-                                backgroundColor: '#fff',
-                                color: '#000',
-                                '&:hover': {
-                                    backgroundColor: '#e0e0e0',
-                                },
-                            }}
-                        >
-                            Dalej
-                        </Button>
-
-                    ) : (
-                        <Button
-                            variant="contained"
-                            color="success"
-                            onClick={() => {
-                                const selectedOptions = Object.entries(selected)
-                                    .filter(([, v]) => v)
-                                    .map(([k]) => k.split('-')[1]);
-
-                                const taco = {
-                                    tortilla,
-                                    meat,
-                                    addons,
-                                    sauces,
-                                    price: total,
-                                    };
-                                addToCart(taco);
-                                setSelected({});
-                                setStep(0);
-                                setTotal(0);
-
-                                alert("Dodano do koszyka! 🍽");
-                               
-                            }}
-                        >
-                            Dodaj do koszyka
-                        </Button>
-                    )}
-                </Box>
-            </div>
+                alert("Dodano do koszyka! 🍽");
+              }}
+            >
+              Dodaj do koszyka
+            </Button>
+          )}
         </Box>
-    );
-
+      </div>
+    </Box>
+  );
 };
 
 export default TacoBuilder;
