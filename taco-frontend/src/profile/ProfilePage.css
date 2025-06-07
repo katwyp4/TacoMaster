@@ -1,0 +1,67 @@
+body {
+    background-color: #121212;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 100px auto 40px;
+    padding: 30px;
+    background: rgba(30,30,30, 0.95); /* efekt lekkiej przezroczystości */
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.7), 0 1.5px 4px rgba(25,118,210,0.1);
+    color: #f1f1f1;
+    backdrop-filter: blur(6px);
+}
+
+.profile-container h2,
+.profile-container h3 {
+    color: #90caf9;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #1976d2;
+    padding-bottom: 7px;
+    letter-spacing: 1px;
+}
+
+.user-info p {
+    font-size: 1.15rem;
+    margin: 0.5rem 0;
+    color: #b0bec5;
+}
+
+.orders-section {
+    margin-top: 2.5rem;
+}
+
+.order-card {
+    background-color: #23272f;
+    padding: 20px;
+    margin-bottom: 18px;
+    border-left: 5px solid #1976d2;
+    border-radius: 12px;
+    color: #e3f2fd;
+    transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.09);
+}
+
+.order-card:hover {
+    background: linear-gradient(90deg, #23272f 80%, #1976d2 100%);
+    transform: translateY(-2px) scale(1.01);
+}
+
+ul {
+    padding: 0;
+    list-style: none;
+}
+
+@media (max-width: 900px) {
+    .profile-container {
+        margin: 40px 8px;
+        padding: 18px;
+    }
+    .order-card {
+        padding: 13px;
+    }
+}

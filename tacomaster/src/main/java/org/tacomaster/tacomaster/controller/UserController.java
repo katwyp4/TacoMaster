@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.*;
 import org.tacomaster.tacomaster.model.User;
 import org.tacomaster.tacomaster.service.UserService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 import java.util.List;
 
@@ -26,19 +31,47 @@ public class UserController {
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@RequestBody User user) {
+        // ustaw domyślną rolę
+        if (user.getRole() == null) {
+            user.setRole("USER");
+        }
         return ResponseEntity.ok(userService.register(user));
     }
 
+
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User user) {
-        return userService.findByEmail(user.getEmail())
-                .filter(u -> passwordEncoder.matches(user.getPassword(), u.getPassword()))
-                .map(ResponseEntity::ok)
+    public ResponseEntity<User> login(@RequestBody User creds,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
+
+        return userService.findByEmail(creds.getEmail())
+                .filter(u -> passwordEncoder.matches(creds.getPassword(), u.getPassword()))
+                .map(u -> {
+                    // 1) budujemy Authentication z rolą
+                    var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole()));
+                    var auth = new UsernamePasswordAuthenticationToken(u.getEmail(), null, authorities);
+
+                    // 2) wkładamy do SecurityContextHolder
+                    var context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication(auth);
+                    SecurityContextHolder.setContext(context);
+
+                    // 3) ZAPISUJEMY KONTEKST W SESJI i wysyłamy Set-Cookie
+                    new HttpSessionSecurityContextRepository()
+                            .saveContext(context, request, response);
+
+                    // 4) usuwamy hasło z obiektu, żeby nie trafiało na front
+                    u.setPassword(null);
+                    return ResponseEntity.ok(u);
+                })
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         String email = authentication.getName();
         return userService.findByEmail(email)
                 .map(ResponseEntity::ok)
@@ -53,6 +86,9 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> create(@RequestBody User user) {
+        if (user.getRole() == null) {
+            user.setRole("USER");
+        }
         return ResponseEntity.ok(userService.saveUser(user));
     }
 
