@@ -20,9 +20,14 @@ public class UserService {
     }
 
     public User register(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new IllegalArgumentException("Email jest już zajęty");
+        }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
+
+
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -35,4 +40,19 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    public List<User> findUsersByUsernameOrEmail(String search) {
+        return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(search, search);
+    }
+
+    public User updateUser(Long id, User updatedUser) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setRole(updatedUser.getRole());
+        existingUser.setUsername(updatedUser.getUsername());
+        // inne pola jeśli chcesz
+        return userRepository.save(existingUser);
+    }
+
 }

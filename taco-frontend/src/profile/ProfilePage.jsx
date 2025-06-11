@@ -62,7 +62,8 @@ const ProfilePage = () => {
       <li key={order.id} className="order-card">
         <p><strong>Zamówienie</strong></p>
         <p>Łączna cena: {order.totalPrice} zł</p>
-        <p>Data: {order.createdAt}</p>
+        <p>Status: {order.status}</p>
+        <p>Data: {new Date(order.createdAt).toLocaleString()}</p>
         <p>Miejsce odbioru: {order.pickupLocation}</p>
         <p>Metoda płatności: {order.paymentMethod}</p>
         <div className="order-items">

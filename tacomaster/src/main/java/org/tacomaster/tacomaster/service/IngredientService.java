@@ -21,4 +21,21 @@ public class IngredientService {
     public List<Ingredient> getByCategory(Ingredient.Category category) {
         return ingredientRepository.findByCategory(category);
     }
+
+    public Ingredient saveIngredient(Ingredient ingredient) {
+        return ingredientRepository.save(ingredient);
+    }
+
+    public Ingredient updateIngredient(Long id, Ingredient updatedIngredient) {
+        Ingredient existing = ingredientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ingredient not found"));
+        existing.setName(updatedIngredient.getName());
+        existing.setPrice(updatedIngredient.getPrice());
+        existing.setCategory(updatedIngredient.getCategory());
+        return ingredientRepository.save(existing);
+    }
+
+    public void deleteIngredient(Long id) {
+        ingredientRepository.deleteById(id);
+    }
 }

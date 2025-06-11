@@ -10,6 +10,7 @@ import './App.css';
 import './index.css'
 import { CartProvider } from './context/CartContext';
 import CartPage from './cart/CartPage';
+import AdminPanel from './admin/AdminPanel'; 
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/register" element={<RegisterForm />} />
             <Route path="/profile" element={<ProfilePage />} />
               <Route path="/cart" element={<CartPage />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Routes>
         </div>
       </Router>
