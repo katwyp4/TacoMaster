@@ -11,21 +11,26 @@ const LoginForm = () => {
 
   const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async e => {
+ const handleSubmit = async e => {
   e.preventDefault();
   try {
-    const response = await axios.post('http://localhost:8080/api/users/login', formData, {
-      withCredentials: true
-    });
-
-    localStorage.setItem('user', JSON.stringify(response.data));
-    navigate('/');
+    const res = await axios.post(
+      'http://localhost:8080/api/users/login',
+      formData,
+      { withCredentials: true }
+    );
+  
+    const user = res.data;
+    localStorage.setItem('user', JSON.stringify(user));
+    
+    if (user.role === 'ADMIN') navigate('/admin');
+    else                    navigate('/');
+    
   } catch (err) {
-    alert('Błąd logowania');
+    console.error(err);
+    alert('Błąd logowania: ' + (err.response?.data?.message || err.message));
   }
 };
-
-
 
   return (
     <Paper elevation={3} sx={{ p: 4, maxWidth: 400, mx: 'auto', mt: 4 }}>

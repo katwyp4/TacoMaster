@@ -28,6 +28,19 @@ public class OrderService {
         return orderRepository.findByUserEmail(email);
     }
 
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+
+    public Order updateOrder(Long id, Order updatedOrder) {
+        Order existingOrder = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        existingOrder.setStatus(updatedOrder.getStatus());
+        return orderRepository.save(existingOrder);
+    }
+
+
 
     public List<Order> getAll() {
         return orderRepository.findAll();

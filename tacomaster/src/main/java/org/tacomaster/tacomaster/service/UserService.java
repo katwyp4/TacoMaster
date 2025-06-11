@@ -35,4 +35,19 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
+
+    public List<User> findUsersByUsernameOrEmail(String search) {
+        return userRepository.findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(search, search);
+    }
+
+    public User updateUser(Long id, User updatedUser) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setRole(updatedUser.getRole());
+        existingUser.setUsername(updatedUser.getUsername());
+        // inne pola jeśli chcesz
+        return userRepository.save(existingUser);
+    }
+
 }
