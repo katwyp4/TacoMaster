@@ -2,6 +2,7 @@ package org.tacomaster.tacomaster.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.tacomaster.tacomaster.dto.OrderWithUserDTO;
 import org.tacomaster.tacomaster.model.User;
 import org.tacomaster.tacomaster.model.Order;
 import org.tacomaster.tacomaster.service.UserService;
@@ -30,7 +31,6 @@ public class AdminController {
         }
     }
 
-
     @GetMapping("/orders")
     public List<Order> getAllOrders() {
         return orderService.getAllOrders();
@@ -40,6 +40,12 @@ public class AdminController {
     public User updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
         return userService.updateUser(id, updatedUser);
     }
+
+    @GetMapping("/orders-with-user")
+    public List<OrderWithUserDTO> getAllOrdersWithUserNames() {
+        return orderService.getAllOrdersWithUserNames();
+    }
+
 
     @PutMapping("/orders/{id}")
     public Order updateOrder(@PathVariable Long id, @RequestBody Order updatedOrder) {

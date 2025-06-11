@@ -38,10 +38,6 @@ public class OrderController {
         return orderService.getAllByUserEmail(email);
     }
 
-
-
-
-
     @GetMapping
     public List<Order> getAll() {
         return orderService.getAll();

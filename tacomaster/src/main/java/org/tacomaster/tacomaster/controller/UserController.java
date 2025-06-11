@@ -2,9 +2,11 @@ package org.tacomaster.tacomaster.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.tacomaster.tacomaster.model.User;
 import org.tacomaster.tacomaster.service.UserService;
@@ -16,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
@@ -30,13 +33,22 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        // ustaw domyślną rolę
-        if (user.getRole() == null) {
-            user.setRole("USER");
+    public ResponseEntity<?> register(@Valid @RequestBody User user, BindingResult result) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body(result.getAllErrors());
         }
-        return ResponseEntity.ok(userService.register(user));
+        try {
+            if (user.getRole() == null) {
+                user.setRole("USER");
+            }
+            User savedUser = userService.register(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
+
+
 
 
     @PostMapping("/login")
@@ -47,20 +59,16 @@ public class UserController {
         return userService.findByEmail(creds.getEmail())
                 .filter(u -> passwordEncoder.matches(creds.getPassword(), u.getPassword()))
                 .map(u -> {
-                    // 1) budujemy Authentication z rolą
                     var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole()));
                     var auth = new UsernamePasswordAuthenticationToken(u.getEmail(), null, authorities);
 
-                    // 2) wkładamy do SecurityContextHolder
                     var context = SecurityContextHolder.createEmptyContext();
                     context.setAuthentication(auth);
                     SecurityContextHolder.setContext(context);
 
-                    // 3) ZAPISUJEMY KONTEKST W SESJI i wysyłamy Set-Cookie
                     new HttpSessionSecurityContextRepository()
                             .saveContext(context, request, response);
 
-                    // 4) usuwamy hasło z obiektu, żeby nie trafiało na front
                     u.setPassword(null);
                     return ResponseEntity.ok(u);
                 })
